@@ -1,0 +1,26 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "55696aa1c4ae4e585ada297906918dacf2790421aeda3f4ebd691e8816f3b292",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/services/host_info.rb",
+      "line": 31,
+      "note": "sh() only ever receives hardcoded probe commands (hostname/uname/sysctl/git config); no user input reaches it."
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "bc06b44eaa2219afc55c0457de8b8ca343af75745ce0bdcaee28c0eb79c51ef0",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/services/network_info.rb",
+      "line": 74,
+      "note": "sh() receives hardcoded probe commands; the only variable part (ping host) is shellescaped at the call site."
+    }
+  ],
+  "updated": "2026-07-25 00:00:00 +0000",
+  "brakeman_version": "7.1.1"
+}

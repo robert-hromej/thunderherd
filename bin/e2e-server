@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Boot a self-contained server for Playwright e2e: isolated DB, built assets,
+# deterministic demo data (a completed run). Used by playwright.config.js webServer.
+set -e
+cd "$(dirname "$0")/.."
+
+PORT="${1:-3311}"
+export RAILS_ENV=development
+export THUNDERHERD_DB="${THUNDERHERD_DB:-thunderherd_e2e}"
+
+# built assets so no Vite dev server is needed; disable autoBuild so the server
+# serves the freshly-built manifest and never rebuilds mid-request (which can
+# briefly blank the manifest and raise ViteRuby::MissingEntrypointError).
+export VITE_RUBY_AUTO_BUILD=false
+bin/vite build >/tmp/thunderherd_e2e_vite.log 2>&1
+
+# fresh, deterministic data in the isolated e2e DB. Order matters: runs first
+# (environments restrict deletion while runs exist), then environments (cascades
+# urls/configs/deploys), then sites — a bare Site.destroy_all silently no-ops
+# because of the restrict_with_error association.
+bin/rails db:prepare >/dev/null 2>&1
+bin/rails runner 'Run.delete_all; Environment.destroy_all; Site.destroy_all; Operator.delete_all; Machine.delete_all' >/dev/null 2>&1
+bin/rails db:seed >/dev/null 2>&1
+bin/rails loadtest:demo_run >/dev/null 2>&1
+# A second completed run so /compare has a before/after pair. Relabelled because the
+# task always labels its run "demo-baseline" and the specs match runs by label.
+bin/rails loadtest:demo_run >/dev/null 2>&1
+bin/rails runner 'Run.order(:id).last.update!(label: "demo-candidate")' >/dev/null 2>&1
+
+# Own pidfile so the e2e server can run alongside a dev `rails server` (which holds
+# the default tmp/pids/server.pid).
+exec bin/rails server -p "$PORT" -e development -P "tmp/pids/e2e-$PORT.pid"

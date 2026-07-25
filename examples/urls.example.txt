@@ -1,0 +1,8 @@
+# Example URL list (generic). Import via: rake "loadtest:import[examples/urls.example.txt,Demo,staging]"
+# env: staging
+# Format: one URL per line; prefix a METHOD and add an optional | JSON body.
+#   GET is the default.  POST https://api.example.com/things | {"name":"x"}
+# Absolute URLs must match the environment host; bare paths are also fine.
+https://example.com/
+https://example.com/index.html
+/products?page=1

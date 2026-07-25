@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Development: Rails + the Vite dev server (HMR) together. Ctrl-C stops both.
+set -e
+cd "$(dirname "$0")/.."
+
+bin/vite dev &
+VITE_PID=$!
+trap 'kill $VITE_PID 2>/dev/null' EXIT INT TERM
+
+bin/rails server "$@"
